@@ -20,3 +20,7 @@ Designed to deliver a **clean, modern and immersive UI** with a strong **Midnigh
 ## 🖼️ Preview
 
 ![](Screenshots/Midnight.png)
+
+---
+
+Based on original work by Karl-HeinzSchneider.
