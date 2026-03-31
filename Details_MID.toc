@@ -2,7 +2,7 @@
 ## Title: Details! Skin Midnight |cff8080ff@project-version@|r
 ## Notes: Adds the 'Midnight' Skin to Details!
 ## Author: GrazyMonster
-## Credits: Original author – Karl-Heinz Schneider
+## Credits: Original author - Karl-Heinz Schneider
 ## X-Website: https://github.com/DGMonster/WoW-Details-Skin-Midnight
 ## Version: @project-version@
 ## X-Date: @project-date-integer@
