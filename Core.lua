@@ -1,15 +1,15 @@
-local TWW = LibStub('AceAddon-3.0'):NewAddon('Details_TWW', 'AceConsole-3.0')
+local MID = LibStub('AceAddon-3.0'):NewAddon('Details_MID', 'AceConsole-3.0')
 local LocDetails = _G.LibStub("AceLocale-3.0"):GetLocale("Details")
 local LSM = LibStub('LibSharedMedia-3.0')
 
-local skinName = '|cff8080ffThe War Within|r'
+local skinName = '|cff8080ffMidnight|r'
 
 local name, realm = UnitName('player')
 local debugMode = (name == 'Zimtdev') or (name == 'Zimtdevtwo') or (name == 'Botlike')
 
 local retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 
-local version = C_AddOns.GetAddOnMetadata('Details_TWW', 'Version')
+local version = C_AddOns.GetAddOnMetadata('Details_MID', 'Version')
 
 function TWW:OnInitialize()
     -- Called when the addon is loaded
