@@ -19,7 +19,7 @@ Designed to deliver a **clean, modern and immersive UI** with a strong **Midnigh
 
 ## 🖼️ Preview
 
-*Later*
+![](Screenshots/Midnight.png)
 
 ---
 
