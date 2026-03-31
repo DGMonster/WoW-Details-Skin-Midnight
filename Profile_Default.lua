@@ -1,5 +1,5 @@
 ---@diagnostic disable: inject-field
-local TWW = LibStub('AceAddon-3.0'):GetAddon('Details_TWW')
+local MID = LibStub('AceAddon-3.0'):GetAddon('Details_MID')
 
 do
     TWW.DefaultProfileImport =
