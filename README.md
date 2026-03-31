@@ -20,11 +20,3 @@ Designed to deliver a **clean, modern and immersive UI** with a strong **Midnigh
 ## 🖼️ Preview
 
 ![](Screenshots/Midnight.png)
-
----
-
-## 📦 Installation
-
-1. Download or clone this repository:
-   ```bash
-   git clone https://github.com/DGMonster/WoW-Details-Skin-Midnight.git
