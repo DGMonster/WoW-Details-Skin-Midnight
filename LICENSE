@@ -1,6 +1,7 @@
 MIT License
 
 Copyright (c) 2024 Karl-HeinzSchneider
+Copyright (c) 2026 GrazyMonster
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +20,21 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Additional Notice
+
+This project is a modified and extended version of an existing addon.
+
+All original rights remain with the original author:
+Karl-HeinzSchneider
+
+This project may include or reference assets, APIs, or elements from:
+
+- World of Warcraft © Blizzard Entertainment
+- Details! Damage Meter
+
+All rights to these assets belong to their respective owners.
+
+This license applies only to the original code and modifications made within this project.
