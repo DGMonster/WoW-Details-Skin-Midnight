@@ -1,44 +1,87 @@
-local MID = LibStub("AceAddon-3.0"):NewAddon("Details_MID", "AceConsole-3.0")
+local MID = LibStub('AceAddon-3.0'):NewAddon('Details_MID', 'AceConsole-3.0')
 local LocDetails = _G.LibStub("AceLocale-3.0"):GetLocale("Details")
-local LSM = LibStub("LibSharedMedia-3.0")
+local LSM = LibStub('LibSharedMedia-3.0')
 
-local skinName = "|cff8080ffMidnight|r"
+local skinName = '|cff8080ffMidnight|r'
 
-local playerName = UnitName("player")
-local debugMode = (playerName == "Zimtdev") or (playerName == "Zimtdevtwo") or (playerName == "Botlike")
+local name, realm = UnitName('player')
+local debugMode = (name == 'Zimtdev') or (name == 'Zimtdevtwo') or (name == 'Botlike')
 
 local retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
-local version = C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("Details_MID", "Version") or "dev"
-
-local initialized = false
-local augmentationHooked = false
-
-function MID:Debug(...)
-    if not debugMode then
-        return
-    end
-
-    self:Print(...)
-end
+local version = C_AddOns.GetAddOnMetadata('Details_MID', 'Version')
 
 function MID:OnInitialize()
-    self:Debug("MID:OnInitialize()")
+    MID:Debug('MID:OnInitialize()')
 end
 
 function MID:OnEnable()
-    self:Debug("MID:OnEnable()")
-    self:RegisterSlashCommand()
+    MID:Debug('MID:OnEnable()')
+    MID:RegisterSlashCommand()
 end
 
 function MID:OnDisable()
 end
 
-function MID:RegisterTextures()
-    self:Debug("MID:RegisterTextures()")
+function MID:Debug(str, ...)
+    if not debugMode then
+        return
+    end
+    self:Print(str, ...)
+end
 
-    LSM:Register("statusbar", "MidnightHeader", [[Interface\AddOns\Details_MID\Textures\header.tga]])
-    LSM:Register("statusbar", "MidnightBar", [[Interface\AddOns\Details_MID\Textures\bar.tga]])
-    LSM:Register("statusbar", "MidnightBackground", [[Interface\AddOns\Details_MID\Textures\background.tga]])
+function MID:OnEvent(event, arg1, ...)
+    MID:Debug(event, arg1, ...)
+
+    if event == 'PLAYER_LOGIN' then
+        MID:SetupAfterLogin()
+    end
+end
+
+function MID:HookNewLineIcons()
+    if not Details or not Details.gump or MID.IconHooked then
+        return
+    end
+
+    hooksecurefunc(Details.gump, "CreateNewLine", function(_, instance, index)
+        C_Timer.After(0, function()
+            MID:ApplyMidnightIconFrames()
+        end)
+    end)
+
+    MID.IconHooked = true
+end
+
+function MID:SetupAfterLogin()
+    if Details.IsLoaded and not Details.IsLoaded() then
+        C_Timer.After(0, function()
+            MID:SetupAfterLogin()
+        end)
+        return
+    end
+
+    MID:RegisterSkin()
+    MID:FixTitleBar()
+    MID:ApplyMidnightIconFrames()
+    MID:HookNewLineIcons()
+
+    if retail then
+        MID:ChangeAugmentationBar()
+    end
+end
+
+local frame = CreateFrame('FRAME')
+frame:SetScript("OnEvent", function(_, event, ...)
+    MID:OnEvent(event, ...)
+end)
+frame:RegisterEvent("PLAYER_LOGIN")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+function MID:RegisterTextures()
+    MID:Debug('MID:RegisterTextures()')
+
+    LSM:Register('statusbar', 'MidnightHeader', [[Interface\AddOns\Details_MID\Textures\header.tga]])
+    LSM:Register('statusbar', 'MidnightBar', [[Interface\AddOns\Details_MID\Textures\bar.blp]])
+    LSM:Register('statusbar', 'MidnightBackground', [[Interface\AddOns\Details_MID\Textures\background.tga]])
 end
 
 MID:RegisterTextures()
@@ -55,7 +98,7 @@ local skinTable = {
         color = {1, 1, 1, 1},
         font = "Accidental Presidency",
         size = 10,
-        textymod = 1,
+        textymod = 1
     },
 
     can_change_alpha_head = true,
@@ -77,324 +120,290 @@ local skinTable = {
         titlebar_shown = true,
         titlebar_height = 32,
         titlebar_texture = "MidnightHeader",
-        titlebar_texture_color = {1, 1, 1, 1},
+        titlebar_texture_color = {0.85, 0.78, 0.55, 1.0},
 
-        toolbar_side = 1,
-        menu_anchor = {
+        ["toolbar_side"] = 1,
+        ["menu_anchor"] = {
             10,
             10,
-            side = 2,
+            ["side"] = 2
         },
 
-        attribute_text = {
-            enabled = true,
-            shadow = false,
-            side = 1,
-            text_size = 13,
-            custom_text = "{name}",
-            text_face = "Friz Quadrata TT",
-            anchor = {-4, 10},
-            text_color = {
+        ["attribute_text"] = {
+            ["enabled"] = true,
+            ["shadow"] = false,
+            ["side"] = 1,
+            ["text_size"] = 13,
+            ["custom_text"] = "{name}",
+            ["text_face"] = "Friz Quadrata TT",
+            ["anchor"] = {
+                -4,
+                10
+            },
+            ["text_color"] = {
                 NORMAL_FONT_COLOR.r,
                 NORMAL_FONT_COLOR.g,
                 NORMAL_FONT_COLOR.b,
-                NORMAL_FONT_COLOR.a,
+                NORMAL_FONT_COLOR.a
             },
-            enable_custom_text = false,
-            show_timer = true,
+            ["enable_custom_text"] = false,
+            ["show_timer"] = true
         },
 
-        row_info = {
-            texture_highlight = "Interface\\FriendsFrame\\UI-FriendsList-Highlight",
-            fixed_text_color = {1, 1, 1},
-            height = 28,
-            row_offsets = {left = 29, right = -37, top = 0, bottom = 0},
-            font_face_file = "Interface\\AddOns\\Details\\fonts\\Accidental Presidency.ttf",
+["row_info"] = {
+    ["texture_highlight"] = "Interface\\FriendsFrame\\UI-FriendsList-Highlight",
 
-            backdrop = {
-                enabled = false,
-                size = 12,
-                color = {1, 1, 1, 1},
-                texture = "Details BarBorder 2",
+    ["fixed_text_color"] = {1, 1, 1},
+    ["textR_class_colors"] = false,
+
+    ["height"] = 28,
+    ["row_offsets"] = {
+        ["left"] = 29,
+        ["right"] = -37,
+        ["top"] = 1,
+        ["bottom"] = 1
+    },
+
+    ["font_face_file"] = "Interface\\AddOns\\Details\\fonts\\Accidental Presidency.ttf",
+
+    ["icon_file"] = "Interface\\AddOns\\Details_MID\\Textures\\ClassIconsMID",
+    ["start_after_icon"] = false,
+
+    ["textR_show_data"] = {true, true, true},
+
+    ["alpha"] = 1,
+
+    ["texture"] = "Details D'AddOn Bar",
+    ["use_custom_texture"] = false,
+
+    ["texture_background"] = "MidnightBackground",
+
+    ["percent_type"] = 1,
+    ["fast_ps_update"] = false,
+    ["textR_separator"] = ",",
+    ["use_spec_icons"] = true
+},
+
+        ["show_statusbar"] = false,
+        ["menu_icons_size"] = 1.07,
+        ["color"] = {
+            0.333333333333333,
+            0.333333333333333,
+            0.333333333333333,
+            0
+        },
+        ["bg_r"] = 0.0941176470588235,
+        ["bg_g"] = 0.0941176470588235,
+        ["bg_b"] = 0.0941176470588235,
+        ["bg_alpha"] = 0,
+        ["hide_out_of_combat"] = false,
+
+        ["following"] = {
+            ["bar_color"] = {
+                1,
+                1,
+                1
             },
-
-            icon_file = "Interface\\AddOns\\Details_MID\\Textures\\ClassIconsMID",
-            start_after_icon = false,
-
-            textL_enable_custom_text = false,
-            textR_enable_custom_text = false,
-            textR_custom_text = "{data1} ({data2}, {data3}%)",
-            textR_class_colors = false,
-            textR_show_data = {true, true, true},
-
-            models = {
-                upper_model = "Spells\\AcidBreath_SuperGreen.M2",
-                lower_model = "World\\EXPANSION02\\DOODADS\\Coldarra\\COLDARRALOCUS.m2",
-                upper_alpha = 0.5,
-                lower_enabled = false,
-                lower_alpha = 0.1,
-                upper_enabled = false,
-            },
-
-            texture_custom_file = "Interface\\",
-            texture_custom = "",
-            alpha = 1,
-            no_icon = false,
-            texture = "MidnightBar",
-            texture_file = "Interface\\AddOns\\Details_MID\\Textures\\bar",
-            texture_background = "MidnightBackground",
-            percent_type = 1,
-            fast_ps_update = false,
-            textR_separator = ",",
-            use_spec_icons = true,
+            ["enabled"] = false,
+            ["text_color"] = {
+                1,
+                1,
+                1
+            }
         },
 
-        show_statusbar = false,
-        menu_icons_size = 1.07,
-        color = {0.333333333333333, 0.333333333333333, 0.333333333333333, 0},
-        bg_r = 0.0941176470588235,
-        hide_out_of_combat = false,
-
-        following = {
-            bar_color = {1, 1, 1},
-            enabled = false,
-            text_color = {1, 1, 1},
+        ["color_buttons"] = {
+            0.90,
+            0.75,
+            0.25,
+            1
         },
+        ["skin_custom"] = "",
 
-        color_buttons = {1, 1, 1, 1},
-        skin_custom = "",
-
-        menu_anchor_down = {
+        ["menu_anchor_down"] = {
             16,
-            -3,
+            -3
         },
 
-        micro_displays_locked = true,
-        row_show_animation = {anim = "Fade", options = {}},
-        tooltip = {n_abilities = 3, n_enemies = 3},
-
-        total_bar = {
-            enabled = false,
-            only_in_group = true,
-            icon = "Interface\\ICONS\\INV_Sigil_Thorim",
-            color = {1, 1, 1},
+        ["micro_displays_locked"] = true,
+        ["row_show_animation"] = {
+            ["anim"] = "Fade",
+            ["options"] = {}
+        },
+        ["tooltip"] = {
+            ["n_abilities"] = 3,
+            ["n_enemies"] = 3
         },
 
-        show_sidebars = false,
-        instance_button_anchor = {-27, 1},
-        plugins_grow_direction = 1,
-
-        menu_alpha = {
-            enabled = false,
-            onleave = 1,
-            ignorebars = false,
-            iconstoo = true,
-            onenter = 1,
+        ["total_bar"] = {
+            ["enabled"] = false,
+            ["only_in_group"] = true,
+            ["icon"] = "Interface\\ICONS\\INV_Sigil_Thorim",
+            ["color"] = {
+                1,
+                1,
+                1
+            }
         },
 
-        micro_displays_side = 2,
-        grab_on_top = false,
-        strata = "LOW",
-        bars_grow_direction = 1,
-        bg_alpha = 0,
-        hide_in_combat_alpha = 0,
+        ["show_sidebars"] = false,
+        ["instance_button_anchor"] = {
+            -27,
+            1
+        },
+        ["plugins_grow_direction"] = 1,
 
-        menu_icons = {
+        ["menu_alpha"] = {
+            ["enabled"] = false,
+            ["onleave"] = 1,
+            ["ignorebars"] = false,
+            ["iconstoo"] = true,
+            ["onenter"] = 1
+        },
+
+        ["micro_displays_side"] = 2,
+        ["grab_on_top"] = false,
+        ["strata"] = "LOW",
+        ["bars_grow_direction"] = 1,
+        ["hide_in_combat_alpha"] = 0,
+
+        ["menu_icons"] = {
             true,
             true,
             true,
             true,
             true,
             false,
-            space = 0,
-            shadow = false,
+            ["space"] = 0,
+            ["shadow"] = false
         },
 
-        auto_hide_menu = {left = false, right = false},
-
-        statusbar_info = {
-            alpha = 0,
-            overlay = {0.333333333333333, 0.333333333333333, 0.333333333333333},
+        ["auto_hide_menu"] = {
+            ["left"] = false,
+            ["right"] = false
         },
 
-        window_scale = 1,
-        libwindow = {
-            y = 90.9987335205078,
-            x = -80.0020751953125,
-            point = "BOTTOMRIGHT",
+        ["statusbar_info"] = {
+            ["alpha"] = 0,
+            ["overlay"] = {
+                0.333333333333333,
+                0.333333333333333,
+                0.333333333333333
+            }
         },
 
-        backdrop_texture = "Details Ground",
-        hide_icon = true,
-        bg_b = 0.0941176470588235,
-        bg_g = 0.0941176470588235,
-        desaturated_menu = false,
-
-        wallpaper = {
-            enabled = false,
-            texcoord = {0, 1, 0, 0.7},
-            overlay = {1, 1, 1, 1},
-            anchor = "all",
-            height = 114.042518615723,
-            alpha = 0.5,
-            width = 283.000183105469,
+        ["window_scale"] = 1,
+        ["libwindow"] = {
+            ["y"] = 90.9987335205078,
+            ["x"] = -80.0020751953125,
+            ["point"] = "BOTTOMRIGHT"
         },
 
-        stretch_button_side = 1,
-        bars_sort_direction = 1,
-    },
+        ["backdrop_texture"] = "Details Ground",
+        ["hide_icon"] = true,
+        ["desaturated_menu"] = false,
+
+        ["wallpaper"] = {
+            ["enabled"] = false,
+            ["texcoord"] = {
+                0,
+                1,
+                0,
+                0.7
+            },
+            ["overlay"] = {
+                1,
+                1,
+                1,
+                1
+            },
+            ["anchor"] = "all",
+            ["height"] = 114.042518615723,
+            ["alpha"] = 0.5,
+            ["width"] = 283.000183105469
+        },
+
+        ["stretch_button_side"] = 1,
+        ["bars_sort_direction"] = 1
+    }
 }
 
 function MID:RegisterSkin()
-    self:Debug("MID:RegisterSkin()")
-
-    if not Details or not Details.InstallSkin then
-        self:Debug("Details or Details.InstallSkin not ready yet.")
-        return false
-    end
-
+    MID:Debug('MID:RegisterSkin()')
     Details:InstallSkin(skinName, skinTable)
-    return true
 end
 
 function MID:FixTitleBar()
-    if not Details or not Details.GetNumInstances then
-        return
-    end
-
     for instanceId = 1, Details:GetNumInstances() do
         local instance = Details:GetInstance(instanceId)
-        if instance and instance.baseframe and instance.ativa and instance.ChangeSkin then
+        if (instance and instance.baseframe and instance.ativa) then
             instance:ChangeSkin()
         end
     end
 end
 
+ApplyMidnightIconFrames()
+
 function MID:ChangeAugmentationBar()
-    if augmentationHooked then
-        return
-    end
-
-    if not retail or not Details or not Details.gump or not Details.class_colors or not Details.class_colors["EVOKER"] then
-        return
-    end
-
-    self:Debug("MID:ChangeAugmentationBar()")
+    MID:Debug('MID:ChangeAugmentationBar()')
 
     local evokerColor = Details.class_colors["EVOKER"]
 
-    local function ApplyAugmentTexture(line)
-        if not line or not line.extraStatusbar then
+    for instanceId = 1, Details:GetNumInstances() do
+        local instance = Details:GetInstance(instanceId)
+        if (instance and instance.baseframe and instance.ativa) then
+            for _, line in ipairs(instance:GetAllLines()) do
+                local extraStatusbar = line.extraStatusbar
+                if extraStatusbar then
+                    extraStatusbar:SetStatusBarTexture([[Interface\AddOns\Details_MID\Textures\augment]])
+                    extraStatusbar:GetStatusBarTexture():SetVertexColor(unpack(evokerColor))
+                    extraStatusbar.texture:SetVertexColor(unpack(evokerColor))
+                end
+            end
+        end
+    end
+
+    local gump = Details.gump
+    hooksecurefunc(gump, 'CreateNewLine', function(self, instance, index)
+        local newLine = _G['DetailsBarra_' .. instance.meu_id .. '_' .. index]
+        if not newLine then
             return
         end
 
-        local extraStatusbar = line.extraStatusbar
-        extraStatusbar:SetStatusBarTexture([[Interface\AddOns\Details_MID\Textures\augment]])
-        if extraStatusbar.GetStatusBarTexture then
-            local texture = extraStatusbar:GetStatusBarTexture()
-            if texture then
-                texture:SetVertexColor(unpack(evokerColor))
-            end
-        end
-
-        if extraStatusbar.texture then
+        local extraStatusbar = newLine.extraStatusbar
+        if extraStatusbar then
+            extraStatusbar:SetStatusBarTexture([[Interface\AddOns\Details_MID\Textures\augment]])
+            extraStatusbar:GetStatusBarTexture():SetVertexColor(unpack(evokerColor))
             extraStatusbar.texture:SetVertexColor(unpack(evokerColor))
         end
-    end
-
-    for instanceId = 1, Details:GetNumInstances() do
-        local instance = Details:GetInstance(instanceId)
-        if instance and instance.baseframe and instance.ativa and instance.GetAllLines then
-            for _, line in ipairs(instance:GetAllLines()) do
-                ApplyAugmentTexture(line)
-            end
-        end
-    end
-
-    hooksecurefunc(Details.gump, "CreateNewLine", function(_, instance, index)
-        local newLine = _G["DetailsBarra_" .. instance.meu_id .. "_" .. index]
-        ApplyAugmentTexture(newLine)
     end)
-
-    augmentationHooked = true
-end
-
-function MID:SetupAfterLogin()
-    if initialized then
-        return
-    end
-
-    if not Details or (Details.IsLoaded and not Details.IsLoaded()) then
-        C_Timer.After(1, function()
-            MID:SetupAfterLogin()
-        end)
-        return
-    end
-
-    self:Debug("MID:SetupAfterLogin()")
-
-    local registered = self:RegisterSkin()
-    if not registered then
-        C_Timer.After(1, function()
-            MID:SetupAfterLogin()
-        end)
-        return
-    end
-
-    self:FixTitleBar()
-
-    if retail then
-        self:ChangeAugmentationBar()
-    end
-
-    initialized = true
 end
 
 function MID:RegisterSlashCommand()
-    self:RegisterChatCommand("mid", "SlashCommand")
+    MID:RegisterChatCommand('mid', 'SlashCommand')
 end
 
 function MID:SlashCommand(msg)
-    msg = msg and strtrim(msg) or ""
-    self:Debug("MID:SlashCommand()", msg)
+    MID:Debug('MID:SlashCommand()', msg)
 
-    if msg == "import" then
-        self:ShowImportProfile()
+    if msg == 'import' then
+        MID:ShowImportProfile()
     else
-        self:Print("Unknown command. Try /mid import")
+        MID:Print([[Slashcommand not found.
+Did you mean '/mid import'?]])
     end
 end
 
 function MID:ShowImportProfile()
-    self:Debug("MID:ShowImportProfile()")
-    self:Print("Import default profile...")
-
-    if not Details or not Details.ImportProfile or not Details.ShowImportProfileConfirmation then
-        self:Print("Details import API is not available.")
-        return
-    end
+    MID:Debug('MID:ShowImportProfile()')
+    MID:Print('Import default profile...')
 
     local askForNewProfileName = function(newProfileName, importAutoRunCode)
         Details:ImportProfile(MID.DefaultProfileImport, newProfileName, importAutoRunCode, true)
     end
 
     Details.ShowImportProfileConfirmation(
-        LocDetails["STRING_OPTIONS_IMPORT_PROFILE_NAME"] .. " [Skin: |cff8080ffDetails_MID|r]:",
+        LocDetails["STRING_OPTIONS_IMPORT_PROFILE_NAME"] .. " [Skin: |cff8080ffDetails_MID|r]" .. ":",
         askForNewProfileName
     )
 end
-
-function MID:OnEvent(event, ...)
-    self:Debug("MID:OnEvent()", event, ...)
-
-    if event == "PLAYER_LOGIN" or event == "PLAYER_ENTERING_WORLD" then
-        self:SetupAfterLogin()
-    end
-end
-
-local frame = CreateFrame("Frame")
-frame:RegisterEvent("PLAYER_LOGIN")
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:SetScript("OnEvent", function(_, event, ...)
-    MID:OnEvent(event, ...)
-end)
