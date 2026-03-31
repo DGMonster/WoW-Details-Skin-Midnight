@@ -1,21 +1,30 @@
-# Details! - Skin 'The War Within'
+# 🌙 Details! Midnight Skin
 
-World of Warcraft Addon that adds the **'The War Within'** Skin (inspired by **/u/Sm0keO**) to **Details!**.
+A custom **dark-themed skin** for the popular WoW addon **Details! Damage Meter**.
 
-View on Curseforge: https://www.curseforge.com/wow/addons/details-skin-the-war-within
+Designed to deliver a **clean, modern and immersive UI** with a strong **Midnight aesthetic**.
 
-## Features
+---
 
-## How to use
+## ✨ Features
 
-Open the _Details!_ options ('/details options'), and apply the Skin under **Options > Skins > Skin > 'The War Within'**.
+- 🌌 Custom **Midnight UI Design**
+- 🎨 Fully reworked **status bars & textures**
+- 🟣 Unique **spec icons with circular mask & glow**
+- 🧠 Improved **spec detection fallback system**
+- ⚡ Support for **Retail (The War Within / Midnight)**
+- 🧩 Clean integration into Details! without breaking core functionality
 
-If you have issues with Details overriding your settings, you can also use **'/tww import'** to import a default profile, which doesn't use the skin directly, but has the style/textures etc set manually.
+---
 
-## Support
+## 🖼️ Preview
 
-If you want to support the development, like and share, but if you're feeling extra kind, you can [buy me a slice of pizza.](https://www.buymeacoffee.com/karlheinzschneider "https://www.buymeacoffee.com/karlheinzschneider") . Thanks!
+*Later*
 
-# Preview
+---
 
-![](Screenshots/windows.png)
+## 📦 Installation
+
+1. Download or clone this repository:
+   ```bash
+   git clone https://github.com/DGMonster/WoW-Details-Skin-Midnight.git
