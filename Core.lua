@@ -1,4 +1,3 @@
-
 local MID = LibStub("AceAddon-3.0"):NewAddon("Details_MID", "AceConsole-3.0")
 local LocDetails = _G.LibStub("AceLocale-3.0"):GetLocale("Details")
 local LSM = LibStub("LibSharedMedia-3.0")
@@ -29,11 +28,22 @@ local function IsInstanceUsable(instance)
     return instance and instance.baseframe and instance.IsEnabled and instance:IsEnabled()
 end
 
+local function GetLineIconTextureObject(line)
+    if not line then
+        return nil
+    end
+
+    return line.icon_texture
+        or line.iconTexture
+        or line.icon_tex
+        or line.icon
+        or (line.icon_frame and line.icon_frame.texture)
+        or (line.Icon and line.Icon.texture)
+end
+
 local BLZ_SPECICON_TO_SPECID = {
-    [1247264] = 577, -- Havoc / Verwüstung
-    -- vengeance id hier ergänzen, falls nötig
-    -- [VENIANCE_ICON_FILEID] = 581,
-    -- [DEVOURER_ICON_FILEID] = 1480,
+    [1247264] = 577,
+    [1234567] = 577,
 }
 
 local function GetLineSpecID(line)
@@ -43,7 +53,6 @@ local function GetLineSpecID(line)
 
     local actor = line.minha_tabela or line.actor or line.my_table or line.displayedActor
 
-    -- 1. Normaler Weg
     local specID =
         line.specId
         or line.specID
@@ -55,17 +64,12 @@ local function GetLineSpecID(line)
         return specID
     end
 
-    -- 2. Blizzard Icon Mapping
-    if line.blzSpecIcon and BLZ_SPECICON_TO_SPECID[line.blzSpecIcon] then
-        return BLZ_SPECICON_TO_SPECID[line.blzSpecIcon]
-    end
+    if line.blzSpecIcon then
+        DEFAULT_CHAT_FRAME:AddMessage("MID blzSpecIcon: " .. tostring(line.blzSpecIcon))
 
-    -- 3. NEU: Fallback über Klasse
-    local class = actor and actor.classe
-
-    if class == "DEMONHUNTER" then
-        -- Default fallback (z.B. Tank → Vengeance)
-        return 581
+        if BLZ_SPECICON_TO_SPECID[line.blzSpecIcon] then
+            return BLZ_SPECICON_TO_SPECID[line.blzSpecIcon]
+        end
     end
 
     return nil
@@ -238,7 +242,7 @@ function MID:FixSpecCoords()
         [1473] = {384/512, 448/512, 256/512, 320/512}, -- Augmentation
 
         -- Devourer / Verschlinger
-        [1480] = {448/512, 512/512, 448/512, 512/512},
+        [1480] = {448/512, 512/512, 256/512, 320/512},
     }
 
     details.default_profile.class_specs_coords = details.default_profile.class_specs_coords or {}
@@ -257,21 +261,28 @@ function MID:ApplySpecIconToLine(line)
     end
 
     local specID = GetLineSpecID(line)
-    local coords = specID and details.class_specs_coords and details.class_specs_coords[specID]
+    if not specID then
+        MID:Debug("No specID for line:", line:GetName() or "unknown", "blzSpecIcon:", tostring(line.blzSpecIcon))
+        return
+    end
+
+    local coords = details.class_specs_coords and details.class_specs_coords[specID]
     if not coords then
+        MID:Debug("Missing coords for specID:", specID)
         return
     end
 
     local atlasPath = "Interface\\AddOns\\Details_MID\\Textures\\specs"
+    local texture = GetLineIconTextureObject(line)
 
-    -- Details internal fallback
+    -- Erst ab hier den Blizzard-Fallback deaktivieren,
+    -- wenn wir wirklich eine eigene Zuordnung haben.
     line.blzSpecIcon = nil
 
     if line.SetLineIconTexture then
         pcall(line.SetLineIconTexture, line, atlasPath, coords[1], coords[2], coords[3], coords[4])
     end
 
-    local texture = GetLineIconTextureObject(line)
     if texture then
         texture:SetTexture(atlasPath)
         texture:SetTexCoord(coords[1], coords[2], coords[3], coords[4])
@@ -289,7 +300,7 @@ function MID:ApplySpecIconToLine(line)
             local border = CreateFrame("Frame", nil, borderParent, "BackdropTemplate")
             border:SetPoint("TOPLEFT", texture, -1, 1)
             border:SetPoint("BOTTOMRIGHT", texture, 1, -1)
-            border:SetFrameLevel(texture:GetDrawLayer() and (borderParent:GetFrameLevel() + 1) or (borderParent:GetFrameLevel() + 1))
+            border:SetFrameLevel(borderParent:GetFrameLevel() + 1)
             border:SetBackdrop({
                 bgFile = "Interface\\Buttons\\WHITE8X8",
                 edgeFile = "Interface\\Buttons\\WHITE8X8",
@@ -306,6 +317,8 @@ function MID:ApplySpecIconToLine(line)
 
             line.MidnightIconBorder = border
         end
+    else
+        MID:Debug("No texture object found for line:", line:GetName() or "unknown")
     end
 end
 
@@ -327,26 +340,40 @@ end
 
 function MID:HookSpecIcons()
     local details = GetDetails()
-    if isSpecHooked or not details or not details.gump then
+    if isSpecHooked or not details then
         return
     end
 
-    hooksecurefunc(details.gump, "CreateNewLine", function(_, instance, index)
-        C_Timer.After(0, function()
-            if not IsInstanceUsable(instance) then
-                return
-            end
-
-            local line = (instance.GetLine and instance:GetLine(index)) or _G["DetailsBarra_" .. instance.meu_id .. "_" .. index]
-            if line then
-                MID:ApplySpecIconToLine(line)
-
-                if retail then
-                    ApplyAugmentationStyle(line, GetEvokerColor(details))
+    -- 1) neue Zeilen
+    if details.gump and details.gump.CreateNewLine then
+        hooksecurefunc(details.gump, "CreateNewLine", function(_, instance, index)
+            C_Timer.After(0, function()
+                if not IsInstanceUsable(instance) then
+                    return
                 end
-            end
+
+                local line = (instance.GetLine and instance:GetLine(index)) or _G["DetailsBarra_" .. instance.meu_id .. "_" .. index]
+                if line then
+                    MID:ApplySpecIconToLine(line)
+
+                    if retail then
+                        ApplyAugmentationStyle(line, GetEvokerColor(details))
+                    end
+                end
+            end)
         end)
-    end)
+    end
+
+    -- 2) WICHTIG: wenn Details selbst die Spec-Icons neu setzt, direkt danach wieder drübergehen
+    if details.SetBarSpecIconSettings then
+        hooksecurefunc(details, "SetBarSpecIconSettings", function(_, line)
+            C_Timer.After(0, function()
+                if line then
+                    MID:ApplySpecIconToLine(line)
+                end
+            end)
+        end)
+    end
 
     isSpecHooked = true
 end
